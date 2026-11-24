@@ -1,0 +1,23 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  build:
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Build universal app
+        run: scripts/build.sh
+      - name: Smoke test
+        run: |
+          dist/PulseBar.app/Contents/MacOS/PulseBar --print 3
+          node bin/cli.js version
+      - name: Check npm package contents
+        run: npm pack --dry-run --ignore-scripts

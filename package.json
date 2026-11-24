@@ -1,0 +1,44 @@
+{
+  "name": "pulsebar",
+  "version": "0.1.0",
+  "description": "A tiny native macOS menu bar app: live download/upload speed, CPU and memory in one glanceable panel.",
+  "keywords": [
+    "macos",
+    "menubar",
+    "menu-bar",
+    "system-monitor",
+    "network-speed",
+    "cpu",
+    "memory",
+    "swiftui"
+  ],
+  "license": "MIT",
+  "author": "Ashutosh Shisodia",
+  "homepage": "https://github.com/shisodiaashutosh/pulsebar#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/shisodiaashutosh/pulsebar.git"
+  },
+  "bugs": {
+    "url": "https://github.com/shisodiaashutosh/pulsebar/issues"
+  },
+  "bin": {
+    "pulsebar": "bin/cli.js"
+  },
+  "files": [
+    "bin/",
+    "dist/PulseBar.zip"
+  ],
+  "os": [
+    "darwin"
+  ],
+  "engines": {
+    "node": ">=16"
+  },
+  "scripts": {
+    "build": "scripts/build.sh",
+    "build:dev": "ARCHS=$(uname -m) scripts/build.sh",
+    "start": "open dist/PulseBar.app",
+    "prepack": "scripts/build.sh"
+  }
+}
