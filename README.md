@@ -92,7 +92,8 @@ bin/cli.js           The `npx pulsebar` installer
 2. Tag and push: `git tag v0.2.0 && git push origin v0.2.0`.
 3. The [release workflow](.github/workflows/release.yml) builds the universal app on a macOS runner, attaches `PulseBar.zip` to a GitHub Release, and publishes to npm.
 
-One-time setup: add an npm **automation token** as the repository secret `NPM_TOKEN`.
+One-time setup: on npmjs.com, open the package → **Settings → Trusted Publisher → GitHub Actions**, and enter
+owner `shisodiaashutosh`, repository `pulsebar`, workflow `release.yml`. No npm token is stored in GitHub.
 
 ## License
 

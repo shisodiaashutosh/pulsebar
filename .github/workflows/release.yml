@@ -6,7 +6,7 @@ on:
 
 permissions:
   contents: write   # create the GitHub Release
-  id-token: write   # npm provenance
+  id-token: write   # npm Trusted Publishing (OIDC): no npm token needed
 
 jobs:
   release:
@@ -15,8 +15,11 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 24
           registry-url: https://registry.npmjs.org
+
+      - name: Use an npm that supports Trusted Publishing (>= 11.5.1)
+        run: npm install -g npm@latest
 
       - name: Tag must match package.json version
         run: test "v$(node -p "require('./package.json').version")" = "$GITHUB_REF_NAME"
@@ -32,7 +35,13 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: gh release create "$GITHUB_REF_NAME" dist/PulseBar.zip --title "PulseBar $GITHUB_REF_NAME" --generate-notes
 
+      # Auth comes from the Trusted Publisher configured on npmjs.com for this repo + workflow.
+      # Provenance is attached automatically.
       - name: Publish to npm
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-        run: npm publish --provenance --access public --ignore-scripts
+        run: |
+          VERSION="$(node -p "require('./package.json').version")"
+          if npm view "pulsebar@$VERSION" version >/dev/null 2>&1; then
+            echo "pulsebar@$VERSION is already on npm; skipping publish"
+          else
+            npm publish --access public --ignore-scripts
+          fi
