@@ -10,9 +10,24 @@ A tiny, native macOS menu bar app. Click the gauge icon to see live **download /
 
 - **Native and light:** Swift + SwiftUI, no Electron, no runtime. ~360 KB download, ~15 MB memory, ~0.1% CPU while idle.
 - **Glanceable:** just an icon in the menu bar. Click it for the panel with 60-second sparklines.
+- **Desktop widget:** optionally pin a live, widget-sized panel to your desktop (updates every second).
 - **Launch at login:** on by default, one switch to turn it off.
 - **Private:** makes no network requests of its own and collects nothing. It only reads the counters macOS already keeps.
 - **Universal:** Apple Silicon and Intel, macOS 13 Ventura or later.
+
+## Desktop widget
+
+<p align="center">
+  <img src="docs/widget-dark.png" width="380" alt="PulseBar desktop widget, dark mode">
+  <img src="docs/widget-light.png" width="380" alt="PulseBar desktop widget, light mode">
+</p>
+
+Turn on **Desktop widget** in the panel. It sits on your desktop behind all windows, on every Space, and updates every second.
+
+- **Move it:** drag it anywhere; the position is remembered.
+- **Hide it:** right-click → Hide Desktop Widget, or switch it off in the panel.
+
+Why not a native macOS widget (Edit Widgets)? WidgetKit widgets are refreshed by macOS on its own schedule, roughly every 15–60 minutes, so they can't show live network speed.
 
 ## Install
 
@@ -69,7 +84,7 @@ Debug flags on the app binary (`dist/PulseBar.app/Contents/MacOS/PulseBar`):
 | `--print [seconds]` | Print one sample per second to the terminal, no UI |
 | `--status` | Print the version and launch-at-login status |
 | `--show-panel` | Open the panel right after launch |
-| `--snapshot out.png [light\|dark] [--seconds N]` | Sample for N seconds and render the panel to a PNG (used for the screenshots above) |
+| `--snapshot out.png [light\|dark] [--seconds N] [--widget]` | Sample for N seconds and render the panel (or the desktop widget) to a PNG (used for the screenshots above) |
 
 ### Project layout
 
@@ -78,6 +93,7 @@ Sources/
   Samplers.swift     CPU, memory and network readers (Darwin / Mach APIs)
   StatsModel.swift   1 s timer, 60-sample history, formatting
   PopoverView.swift  The panel (SwiftUI)
+  DesktopWidget.swift  The desktop widget window and its view
   AppDelegate.swift  Menu bar icon + popover
   LoginItem.swift    Launch at login (SMAppService)
   main.swift         Entry point and debug flags

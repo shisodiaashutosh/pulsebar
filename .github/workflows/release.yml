@@ -33,7 +33,13 @@ jobs:
       - name: GitHub Release
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release create "$GITHUB_REF_NAME" dist/PulseBar.zip --title "PulseBar $GITHUB_REF_NAME" --generate-notes
+        # Re-runnable: if the release already exists (e.g. npm failed last time), just refresh the zip.
+        run: |
+          if gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
+            gh release upload "$GITHUB_REF_NAME" dist/PulseBar.zip --clobber
+          else
+            gh release create "$GITHUB_REF_NAME" dist/PulseBar.zip --title "PulseBar $GITHUB_REF_NAME" --generate-notes
+          fi
 
       # Auth comes from the Trusted Publisher configured on npmjs.com for this repo + workflow.
       # Provenance is attached automatically.

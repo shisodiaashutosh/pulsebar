@@ -6,6 +6,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var statusItem: NSStatusItem!
     private let popover = NSPopover()
     private let model = StatsModel()
+    private lazy var widget = DesktopWidgetController(model: model)
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
@@ -19,13 +20,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             button.sendAction(on: [.leftMouseUp, .rightMouseUp])
         }
 
-        let host = NSHostingController(rootView: PopoverView(model: model) { NSApp.terminate(nil) })
+        let host = NSHostingController(rootView: PopoverView(model: model, widget: widget) { NSApp.terminate(nil) })
         host.sizingOptions = .preferredContentSize
         popover.contentViewController = host
         popover.behavior = .transient  // closes on any click outside
         popover.animates = true
 
         model.start()
+        widget.restore()
         LoginItem.enableOnFirstLaunch()
 
         // Open the panel once on first launch so people can see where the icon lives.

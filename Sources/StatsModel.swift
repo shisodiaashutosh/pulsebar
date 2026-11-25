@@ -86,6 +86,11 @@ enum Format {
         return mbps >= 100 ? String(format: "%.0f Mbps", mbps) : String(format: "%.1f Mbps", mbps)
     }
 
+    /// Chart ceiling for a network history. Floored at 50 KB/s so idle chatter doesn't look like a spike.
+    static func networkScale(_ history: [Double]) -> Double {
+        max(history.max() ?? 0, 50_000)
+    }
+
     static func percent(_ fraction: Double) -> String {
         String(format: "%.0f", min(max(fraction, 0), 1) * 100)
     }

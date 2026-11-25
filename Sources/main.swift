@@ -7,7 +7,8 @@ import SwiftUI
 //   --unregister-login-item       remove the login item and exit (run before uninstalling)
 //   --show-panel                  open the panel right after launch
 //   --print [seconds]             print one sample per second to stdout, no UI
-//   --snapshot <file.png> [light|dark] [--seconds N]  sample N seconds (default 12), render the panel to a PNG
+//   --snapshot <file.png> [light|dark] [--seconds N] [--widget]  sample N seconds (default 12),
+//                                 render the panel (or the desktop widget) to a PNG
 @MainActor
 func main() throws {
     let arguments = CommandLine.arguments
@@ -59,9 +60,14 @@ func main() throws {
         let model = StatsModel()
         model.start()
         runLoop(for: TimeInterval(argument(after: "--seconds") ?? "") ?? 12)
-        let view = PopoverView(model: model, forExport: true)
-            .background(Color(nsColor: .windowBackgroundColor))
-            .environment(\.colorScheme, dark ? .dark : .light)
+        let scheme: ColorScheme = dark ? .dark : .light
+        let view: AnyView = arguments.contains("--widget")
+            ? AnyView(DesktopWidgetView(model: model, forExport: true)
+                .padding(24)  // room for the transparent corners
+                .environment(\.colorScheme, scheme))
+            : AnyView(PopoverView(model: model, widget: DesktopWidgetController(model: model), forExport: true)
+                .background(Color(nsColor: .windowBackgroundColor))
+                .environment(\.colorScheme, scheme))
         let renderer = ImageRenderer(content: view)
         renderer.scale = 2
         guard let image = renderer.cgImage,

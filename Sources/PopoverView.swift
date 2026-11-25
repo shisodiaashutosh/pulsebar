@@ -9,6 +9,7 @@ enum Palette {
 
 struct PopoverView: View {
     @ObservedObject var model: StatsModel
+    @ObservedObject var widget: DesktopWidgetController
     var onQuit: () -> Void = {}
     /// Offscreen rendering (README screenshots) can't draw AppKit controls, so draw a stand-in.
     var forExport = false
@@ -48,11 +49,10 @@ struct PopoverView: View {
     private func networkTile(_ title: String, symbol: String, tint: Color,
                              rate: Double, history: [Double]) -> some View {
         let formatted = Format.rate(rate)
-        // Floor the scale at 50 KB/s so background chatter doesn't look like a spike.
-        let scale = max(history.max() ?? 0, 50_000)
         return StatTile(title: title, symbol: symbol, tint: tint,
                         value: formatted.value, unit: formatted.unit,
-                        caption: Format.megabits(rate), history: history, scaleMax: scale)
+                        caption: Format.megabits(rate), history: history,
+                        scaleMax: Format.networkScale(history))
     }
 
     private var header: some View {
@@ -69,56 +69,58 @@ struct PopoverView: View {
                     .font(.system(size: 10, weight: .medium))
                     .foregroundStyle(.secondary)
             }
+            Button(action: onQuit) {
+                Image(systemName: "power")
+                    .font(.system(size: 11, weight: .semibold))
+                    .foregroundStyle(.secondary)
+                    .frame(width: 18, height: 18)
+                    .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .keyboardShortcut("q")
+            .help("Quit PulseBar (⌘Q)")
+            .padding(.leading, 4)
         }
         .padding(.horizontal, 2)
     }
 
     private var footer: some View {
-        HStack {
-            if forExport {
-                exportToggle
-            } else {
-                loginToggle
+        VStack(alignment: .leading, spacing: 6) {
+            HStack {
+                setting("Desktop widget", isOn: Binding(
+                    get: { widget.isVisible },
+                    set: { widget.setVisible($0) }))
+                Spacer()
+                setting("Launch at login", isOn: Binding(
+                    get: { loginStatus == .enabled },
+                    set: { LoginItem.setEnabled($0); loginStatus = LoginItem.status }))
             }
-
             if loginStatus == .requiresApproval {
-                Button("Approve…") { LoginItem.openSystemSettings() }
+                Button("Launch at login needs approval in System Settings…") { LoginItem.openSystemSettings() }
                     .buttonStyle(.link)
-                    .font(.system(size: 11))
+                    .font(.system(size: 10))
             }
-
-            Spacer()
-
-            Button(action: onQuit) {
-                Text("Quit").font(.system(size: 11, weight: .medium))
-            }
-            .buttonStyle(.plain)
-            .foregroundStyle(.secondary)
-            .keyboardShortcut("q")
         }
         .padding(.horizontal, 2)
     }
 
-    private var loginToggle: some View {
-        Toggle(isOn: Binding(
-            get: { loginStatus == .enabled },
-            set: { LoginItem.setEnabled($0); loginStatus = LoginItem.status }
-        )) {
-            Text("Launch at login").font(.system(size: 11))
-        }
-        .toggleStyle(.switch)
-        .controlSize(.mini)
-    }
-
-    private var exportToggle: some View {
-        HStack(spacing: 8) {
-            Text("Launch at login").font(.system(size: 11))
-            Capsule()
-                .fill(Color.accentColor)
-                .frame(width: 26, height: 15)
-                .overlay(alignment: .trailing) {
-                    Circle().fill(.white).padding(1.5).shadow(radius: 0.5)
-                }
+    @ViewBuilder
+    private func setting(_ title: String, isOn: Binding<Bool>) -> some View {
+        if forExport {
+            // Offscreen rendering can't draw AppKit switches; draw a look-alike.
+            HStack(spacing: 6) {
+                Text(title).font(.system(size: 11))
+                Capsule()
+                    .fill(isOn.wrappedValue ? Color.accentColor : Color.primary.opacity(0.15))
+                    .frame(width: 26, height: 15)
+                    .overlay(alignment: isOn.wrappedValue ? .trailing : .leading) {
+                        Circle().fill(.white).padding(1.5).shadow(radius: 0.5)
+                    }
+            }
+        } else {
+            Toggle(isOn: isOn) { Text(title).font(.system(size: 11)) }
+                .toggleStyle(.switch)
+                .controlSize(.mini)
         }
     }
 }
