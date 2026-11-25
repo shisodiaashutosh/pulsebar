@@ -1,6 +1,6 @@
 {
   "name": "pulsebar",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "A tiny native macOS menu bar app: live download/upload speed, CPU and memory in one glanceable panel.",
   "keywords": [
     "macos",
